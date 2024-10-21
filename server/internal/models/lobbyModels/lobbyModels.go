@@ -12,6 +12,7 @@ type Message struct {
 type User struct {
 	Id         string
 	Connection *websocket.Conn
+	CloseChan  chan struct{}
 }
 
 type UserEvents struct {

@@ -1,9 +1,8 @@
 package websocket
 
 import (
-	"chat/internal/models/lobbyModels"
-	lobbyHandlers "chat/internal/services/lobby"
-	logger "chat/pkg"
+	// "chat/internal/models/lobbyModels"
+	// lobbyHandlers "chat/internal/services/lobby"
 	"net/http"
 
 	"github.com/gorilla/websocket"
@@ -20,35 +19,30 @@ func StartWebsocket() {
 		userId := r.URL.Query().Get("userId")
 		lobbyId := r.URL.Query().Get("lobbyId")
 
-		room := lobbyHandlers.GetRoomById(lobbyId)
-		if room == nil {
-			http.Error(w, "Room not found", http.StatusNotFound)
-			return
-		}
-		HandlerConnection(upgrader, w, r, room, userId)
+		HandlerConnection(upgrader, w, r, userId, lobbyId)
 	})
 }
 
-func HandlerConnection(upgrader websocket.Upgrader, w http.ResponseWriter, r *http.Request, room *lobbyHandlers.Room, userId string) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		http.Error(w, "Could not upgrade connection", http.StatusBadRequest)
-		return
-	}
-	defer conn.Close()
+// func HandlerConnection(upgrader websocket.Upgrader, w http.ResponseWriter, r *http.Request, room *lobbyHandlers.Room, userId string) {
+// 	conn, err := upgrader.Upgrade(w, r, nil)
+// 	if err != nil {
+// 		http.Error(w, "Could not upgrade connection", http.StatusBadRequest)
+// 		return
+// 	}
+// 	defer conn.Close()
 
-	user := &lobbyModels.User{
-		Id:         userId,
-		Connection: conn,
-	}
-	room.AddUserEvent(user, "join")
-}
+// 	user := &lobbyModels.User{
+// 		Id:         userId,
+// 		Connection: conn,
+// 	}
+// 	room.AddUserEvent(user, "join")
+// }
 
-func HandlerSendMessageBrodcast(user *lobbyModels.User, message lobbyModels.Message) error {
-	err := user.Connection.WriteJSON(message)
-	if err != nil {
-		logger.Log.Error("Error sending message to user %s: %v", user.Id, err)
-		return err
-	}
-	return nil
-}
+// func HandlerSendMessageBrodcast(user *lobbyModels.User, message lobbyModels.Message) error {
+// 	err := user.Connection.WriteJSON(message)
+// 	if err != nil {
+// 		logger.Log.Error("Error sending message to user %s: %v", user.Id, err)
+// 		return err
+// 	}
+// 	return nil
+// }
