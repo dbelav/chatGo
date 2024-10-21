@@ -52,7 +52,6 @@ func JoinLobby(userId, roomId string, database *sql.DB) error {
 			logger.Log.Error("Error join in room, user already joined lobby")
 			return errormodels.ErrUserAlreadyJoined
 		}
-
 		logger.Log.Error("Error join in room")
 		return err
 	}

@@ -1,5 +1,24 @@
 package lobbyModels
 
+import (
+	"github.com/gorilla/websocket"
+)
+
+type Message struct {
+	From    string `json:"from"`
+	Content string `json:"content"`
+}
+
+type User struct {
+	Id         string
+	Connection *websocket.Conn
+}
+
+type UserEvents struct {
+	User  *User
+	Event string
+}
+
 type CreateLobbyResponse struct {
 	LobbyId string `json:"lobbyId"`
 	Message string `json:"message"`
