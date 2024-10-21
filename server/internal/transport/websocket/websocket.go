@@ -25,11 +25,11 @@ func StartWebsocket() {
 			http.Error(w, "Room not found", http.StatusNotFound)
 			return
 		}
-		HandlerConnection(w, r, room, userId)
+		HandlerConnection(upgrader, w, r, room, userId)
 	})
 }
 
-func HandlerConnection(w http.ResponseWriter, r *http.Request, room *lobbyHandlers.Room, userId string) {
+func HandlerConnection(upgrader websocket.Upgrader, w http.ResponseWriter, r *http.Request, room *lobbyHandlers.Room, userId string) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Could not upgrade connection", http.StatusBadRequest)
