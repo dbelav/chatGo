@@ -6,7 +6,6 @@ import (
 
 	"chat/internal/database"
 	"chat/internal/transport/http"
-	"chat/internal/transport/websocket"
 	logger "chat/pkg"
 )
 
@@ -25,5 +24,5 @@ func StartApp() {
 	database := database.ConnectDatabase(psqlInfo)
 
 	http.Api(database)
-	websocket.StartWebsocket()
+	// websocket.StartWebsocket()
 }
