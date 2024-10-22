@@ -22,7 +22,7 @@ func Api(database *sql.DB) {
 	lobbyGroup := routes.Group("/lobby")
 	{
 		lobbyGroup.POST("/create", func(c *gin.Context) {
-			JoinLobbyHandler(c, database)
+			CreateRoomHandler(c, database)
 		})
 
 		lobbyGroup.POST("/join", func(c *gin.Context) {
