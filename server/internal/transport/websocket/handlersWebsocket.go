@@ -41,6 +41,7 @@ func HandlerSendMessageBrodcast(user *lobbyModels.User, message lobbyModels.Mess
 	}
 	return nil
 }
+
 func ListenUserMessage(user *lobbyModels.User, room *lobbyHandlers.Room) {
 	for {
 		select {
@@ -62,21 +63,30 @@ func ListenUserMessage(user *lobbyModels.User, room *lobbyHandlers.Room) {
 
 			room.Brodcast <- message
 		}
-		fmt.Println("BRODCAST222")
-		fmt.Println(room.Brodcast)
-		fmt.Println("BRODCAST222")
-		select {
+		// fmt.Println("BRODCAST222")
+		// fmt.Println(room.Brodcast)
+		// fmt.Println("BRODCAST222")
+		// select {
 
-		case brodcast := <-room.Brodcast:
-			fmt.Println("BRODCAST")
-			fmt.Println(brodcast)
-			fmt.Println("BRODCAST")
-			err := HandlerSendMessageBrodcast(user, brodcast) // Отправляем сообщение пользователю
-			if err != nil {
-				logger.Log.Error("Error sending message to user %s: %v", user.Id, err)
-			}
-		default:
-			// Если нет сообщений в канале Brodcast, продолжаем ожидание
+		// case brodcast := <-room.Brodcast:
+		// 	fmt.Println("BRODCAST")
+		// 	fmt.Println(brodcast)
+		// 	fmt.Println("BRODCAST")
+		// 	err := HandlerSendMessageBrodcast(user, brodcast)
+		// 	if err != nil {
+		// 		logger.Log.Error("Error sending message to user %s: %v", user.Id, err)
+		// 	}
+		// default:
+		// }
+	}
+}
+
+func ListenBrodcast(user *lobbyModels.User, room *lobbyHandlers.Room) {
+	for brodcast := range room.Brodcast {
+		err := HandlerSendMessageBrodcast(user, brodcast)
+		if err != nil {
+			logger.Log.Error("Error sending message to user %s: %v", user.Id, err)
+			return
 		}
 	}
 }

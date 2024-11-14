@@ -21,6 +21,7 @@ func RunRoom(room *lobbyHandlers.Room) {
 				}
 				room.AddUser(userEvent.User)
 				go websocket.ListenUserMessage(userEvent.User, room)
+				go websocket.ListenBrodcast(userEvent.User, room)
 				room.Brodcast <- message
 			case "disconnect":
 				message := lobbyModels.Message{
