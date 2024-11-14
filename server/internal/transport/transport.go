@@ -12,6 +12,8 @@ func RunRoom(room *lobbyHandlers.Room) {
 		select {
 		case userEvent := <-room.UserEvents:
 			fmt.Println(userEvent)
+			go websocket.ListenBrodcast(room)
+
 			switch userEvent.Event {
 			case "connect":
 				fmt.Println("userEvent Connect")
@@ -21,7 +23,7 @@ func RunRoom(room *lobbyHandlers.Room) {
 				}
 				room.AddUser(userEvent.User)
 				go websocket.ListenUserMessage(userEvent.User, room)
-				go websocket.ListenBrodcast(userEvent.User, room)
+				go websocket.ListenUserChanelFromBrodcast(userEvent.User, room)
 				room.Brodcast <- message
 			case "disconnect":
 				message := lobbyModels.Message{

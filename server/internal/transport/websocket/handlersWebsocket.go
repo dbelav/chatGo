@@ -47,46 +47,56 @@ func ListenUserMessage(user *lobbyModels.User, room *lobbyHandlers.Room) {
 		select {
 		case <-user.CloseChan:
 			fmt.Println("CloseChan")
-			fmt.Println("CloseChan")
 			return
-		default:
 
+		// Обработка сообщения от WebSocket-соединения
+		default:
 			var message lobbyModels.Message
 			err := user.Connection.ReadJSON(&message)
-			fmt.Println("BRODCAST77777")
-			fmt.Println(message)
-			fmt.Println("BRODCAST77777")
 			if err != nil {
 				logger.Log.Error("Error reading message from user %s: %v", user.Id, err)
 				return
 			}
-
-			room.Brodcast <- message
+			room.Brodcast <- message // Отправка сообщения в общий канал
 		}
-		// fmt.Println("BRODCAST222")
-		// fmt.Println(room.Brodcast)
-		// fmt.Println("BRODCAST222")
-		// select {
-
-		// case brodcast := <-room.Brodcast:
-		// 	fmt.Println("BRODCAST")
-		// 	fmt.Println(brodcast)
-		// 	fmt.Println("BRODCAST")
-		// 	err := HandlerSendMessageBrodcast(user, brodcast)
-		// 	if err != nil {
-		// 		logger.Log.Error("Error sending message to user %s: %v", user.Id, err)
-		// 	}
-		// default:
-		// }
 	}
 }
 
-func ListenBrodcast(user *lobbyModels.User, room *lobbyHandlers.Room) {
-	for brodcast := range room.Brodcast {
-		err := HandlerSendMessageBrodcast(user, brodcast)
-		if err != nil {
-			logger.Log.Error("Error sending message to user %s: %v", user.Id, err)
+func ListenUserChanelFromBrodcast(user *lobbyModels.User, room *lobbyHandlers.Room) {
+	for {
+		channelInterface, ok := room.UserChannels.Load(user.Id)
+		if !ok {
 			return
 		}
+		userChannel, ok := channelInterface.(chan lobbyModels.Message)
+		if !ok {
+			return
+		}
+		select {
+		case message := <-userChannel:
+			err := HandlerSendMessageBrodcast(user, message)
+			if err != nil {
+				logger.Log.Error("Error sending message to user %s: %v", user.Id, err)
+			}
+
+		default:
+		}
+	}
+}
+
+func ListenBrodcast(room *lobbyHandlers.Room) {
+	for brodcast := range room.Brodcast {
+		// Проходим по каждому элементу sync.Map
+		room.UserChannels.Range(func(_, userChanInterface any) bool {
+			userChan, ok := userChanInterface.(chan lobbyModels.Message)
+			if ok {
+				// Отправляем сообщение в канал пользователя
+				userChan <- brodcast
+			} else {
+				logger.Log.Warn("Failed to send message, user channel type mismatch")
+			}
+			return true // продолжаем итерацию по map
+		})
+		fmt.Println("message sent")
 	}
 }

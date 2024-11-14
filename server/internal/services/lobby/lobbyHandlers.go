@@ -7,16 +7,19 @@ import (
 
 	"chat/internal/models/lobbyModels"
 
+	"sync"
+
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type Room struct {
-	Id         string
-	Users      map[string]*lobbyModels.User
-	Brodcast   chan lobbyModels.Message
-	UserEvents chan lobbyModels.UserEvents
-	Quit       chan bool
+	Id           string
+	Users        map[string]*lobbyModels.User
+	Brodcast     chan lobbyModels.Message
+	UserEvents   chan lobbyModels.UserEvents
+	UserChannels sync.Map
+	Quit         chan bool
 }
 
 var Rooms = make(map[string]*Room) // all existed rooms
@@ -33,7 +36,8 @@ func NewRoom(id string) *Room {
 		Users:      make(map[string]*lobbyModels.User),
 		Brodcast:   make(chan lobbyModels.Message, 1000),
 		UserEvents: make(chan lobbyModels.UserEvents),
-		Quit:       make(chan bool),
+		// UserChannels: make(map[string]chan lobbyModels.Message),
+		Quit: make(chan bool),
 	}
 }
 
@@ -50,10 +54,15 @@ func (r *Room) AddUserEvent(user *lobbyModels.User, event string) {
 
 func (r *Room) AddUser(user *lobbyModels.User) {
 	r.Users[user.Id] = user
+	r.UserChannels.Store(user.Id, make(chan lobbyModels.Message, 100))
 }
 
 func (r *Room) DeleteUser(user *lobbyModels.User) {
 	delete(r.Users, user.Id)
+	if ch, ok := r.UserChannels.Load(user.Id); ok {
+		close(ch.(chan lobbyModels.Message))
+	}
+	r.UserChannels.Delete(user.Id)
 }
 
 func CreateLobby(c *gin.Context, db *sql.DB) (*Room, error) {
