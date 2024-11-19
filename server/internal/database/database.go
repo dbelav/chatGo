@@ -2,11 +2,11 @@ package database
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
 
 	// "chat/internal/database"
 	errormodels "chat/internal/models/errorModels"
+	"chat/internal/models/lobbyModels"
 	logger "chat/pkg"
 
 	"github.com/lib/pq"
@@ -97,4 +97,7 @@ func GetAllRoomFromDB(database *sql.DB) ([]string, error) {
 	return roomsId, nil
 }
 
-
+func AddMessageInDataBase(message lobbyModels.Message, userId, roomId string, db *sql.DB) {
+	query := `INSERT INTO messages (room_id, user_id, message) VALUES($1, $2, $3)`
+	db.Exec(query, roomId, userId, message.Content)
+}

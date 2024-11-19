@@ -4,10 +4,11 @@ import (
 	"chat/internal/models/lobbyModels"
 	lobbyHandlers "chat/internal/services/lobby"
 	"chat/internal/transport/websocket"
+	"database/sql"
 	"fmt"
 )
 
-func RunRoom(room *lobbyHandlers.Room) {
+func RunRoom(room *lobbyHandlers.Room, db *sql.DB) {
 	for {
 		select {
 		case userEvent := <-room.UserEvents:
@@ -16,13 +17,12 @@ func RunRoom(room *lobbyHandlers.Room) {
 
 			switch userEvent.Event {
 			case "connect":
-				fmt.Println("userEvent Connect")
 				message := lobbyModels.Message{
 					From:    userEvent.User.Id,
 					Content: fmt.Sprintf("User %s connected", userEvent.User.Id),
 				}
 				room.AddUser(userEvent.User)
-				go websocket.ListenUserMessage(userEvent.User, room)
+				go websocket.ListenUserMessage(userEvent.User, room, db)
 				go websocket.ListenUserChanelFromBrodcast(userEvent.User, room)
 				room.Brodcast <- message
 			case "disconnect":

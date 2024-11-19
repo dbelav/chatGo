@@ -48,7 +48,7 @@ func CreateRoomHandler(c *gin.Context, database *sql.DB) {
 		})
 	}
 
-	go transport.RunRoom(room)
+	go transport.RunRoom(room, database)
 
 	c.JSON(http.StatusCreated, lobbyModels.CreateLobbyResponse{
 		LobbyId: room.Id,

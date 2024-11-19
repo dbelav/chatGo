@@ -33,7 +33,7 @@ func StartApp() {
 	}
 
 	for _, room := range lobbyHandlers.Rooms { // start all existed room at start
-		go transport.RunRoom(room)
+		go transport.RunRoom(room, database)
 	}
 
 	http.Api(database)

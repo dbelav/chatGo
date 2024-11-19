@@ -4,6 +4,7 @@ import (
 	"chat/internal/models/lobbyModels"
 	lobbyHandlers "chat/internal/services/lobby"
 	logger "chat/pkg"
+	"database/sql"
 	"fmt"
 	"net/http"
 
@@ -42,22 +43,22 @@ func HandlerSendMessageBrodcast(user *lobbyModels.User, message lobbyModels.Mess
 	return nil
 }
 
-func ListenUserMessage(user *lobbyModels.User, room *lobbyHandlers.Room) {
+func ListenUserMessage(user *lobbyModels.User, room *lobbyHandlers.Room, db *sql.DB) {
 	for {
 		select {
 		case <-user.CloseChan:
 			fmt.Println("CloseChan")
 			return
 
-		// Обработка сообщения от WebSocket-соединения
-		default:
+		default: // default handler message
 			var message lobbyModels.Message
 			err := user.Connection.ReadJSON(&message)
+			lobbyHandlers.SaveMassageInHistory(message, user.Id, room.Id, db)
 			if err != nil {
 				logger.Log.Error("Error reading message from user %s: %v", user.Id, err)
 				return
 			}
-			room.Brodcast <- message // Отправка сообщения в общий канал
+			room.Brodcast <- message 
 		}
 	}
 }
