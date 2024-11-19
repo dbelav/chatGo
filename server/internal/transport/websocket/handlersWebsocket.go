@@ -86,16 +86,14 @@ func ListenUserChanelFromBrodcast(user *lobbyModels.User, room *lobbyHandlers.Ro
 
 func ListenBrodcast(room *lobbyHandlers.Room) {
 	for brodcast := range room.Brodcast {
-		// Проходим по каждому элементу sync.Map
 		room.UserChannels.Range(func(_, userChanInterface any) bool {
 			userChan, ok := userChanInterface.(chan lobbyModels.Message)
 			if ok {
-				// Отправляем сообщение в канал пользователя
 				userChan <- brodcast
 			} else {
 				logger.Log.Warn("Failed to send message, user channel type mismatch")
 			}
-			return true // продолжаем итерацию по map
+			return true
 		})
 		fmt.Println("message sent")
 	}

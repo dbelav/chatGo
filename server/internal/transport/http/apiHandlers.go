@@ -55,3 +55,5 @@ func CreateRoomHandler(c *gin.Context, database *sql.DB) {
 		Message: "Successful created lobby",
 	})
 }
+
+

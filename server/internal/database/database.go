@@ -2,8 +2,10 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 
+	// "chat/internal/database"
 	errormodels "chat/internal/models/errorModels"
 	logger "chat/pkg"
 
@@ -64,3 +66,35 @@ func JoinLobby(userId, roomId string, database *sql.DB) error {
 
 	return nil
 }
+
+func GetAllRoomFromDB(database *sql.DB) ([]string, error) {
+	var roomsId []string
+
+	query := `SELECT id FROM rooms`
+	result, err := database.Query(query)
+	if err != nil {
+		logger.Log.Error("Error get rooms")
+		return nil, err
+	}
+
+	defer result.Close()
+
+	for result.Next() {
+		var roomId string
+
+		err := result.Scan(&roomId)
+		if err != nil {
+			return nil, err
+		}
+		roomsId = append(roomsId, roomId)
+	}
+
+	if err := result.Err(); err != nil {
+		logger.Log.Error("Error during result iteration")
+		return nil, err
+	}
+
+	return roomsId, nil
+}
+
+

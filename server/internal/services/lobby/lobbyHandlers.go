@@ -4,6 +4,7 @@ import (
 	"chat/internal/database"
 	errormodels "chat/internal/models/errorModels"
 	"database/sql"
+	"fmt"
 
 	"chat/internal/models/lobbyModels"
 
@@ -91,5 +92,26 @@ func JoinLobby(c *gin.Context, db *sql.DB) error {
 		return err
 	}
 
+	return nil
+}
+
+func InitAllRooms(db *sql.DB) error {
+	// var roomsId []Rooms
+	fmt.Println("dflgndklsjgnfkjidsngfndsgfdsfighdkijgdkjhgkdljhgkldgkljdhg")
+	fmt.Printf("result")
+
+	fmt.Println("dflgndklsjgnfkjidsngfndsgfdsfighdkijgdkjhgkdljhgkldgkljdhg")
+
+	roomsId, err := database.GetAllRoomFromDB(db)
+	fmt.Println(roomsId)
+	if err != nil {
+		return err
+	}
+	if len(roomsId) > 0 {
+		for _, id := range roomsId {
+			room := NewRoom(id)
+			Rooms[id] = room
+		}
+	}
 	return nil
 }
