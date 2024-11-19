@@ -12,7 +12,6 @@ func RunRoom(room *lobbyHandlers.Room, db *sql.DB) {
 	for {
 		select {
 		case userEvent := <-room.UserEvents:
-			fmt.Println(userEvent)
 			go websocket.ListenBrodcast(room)
 
 			switch userEvent.Event {

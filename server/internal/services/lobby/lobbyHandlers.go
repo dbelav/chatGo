@@ -95,13 +95,16 @@ func JoinLobby(c *gin.Context, db *sql.DB) error {
 	return nil
 }
 
+func GetRoomHistory(c *gin.Context, db *sql.DB) {
+
+}
+
 func SaveMassageInHistory(message lobbyModels.Message, userId string, roomId string, db *sql.DB) {
 	database.AddMessageInDataBase(message, userId, roomId, db)
 }
 
 func InitAllRooms(db *sql.DB) error {
 	roomsId, err := database.GetAllRoomFromDB(db)
-	fmt.Println(roomsId)
 	if err != nil {
 		return err
 	}
