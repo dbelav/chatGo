@@ -56,8 +56,6 @@ func CreateRoomHandler(c *gin.Context, database *sql.DB) {
 	})
 }
 
-func GetMessagesHistoryByRoom(c *gin.Context, database *sql.DB){
+func GetMessagesHistoryByRoomHandler(c *gin.Context, database *sql.DB) {
 
 }
-
-

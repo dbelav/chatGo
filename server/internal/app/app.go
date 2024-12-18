@@ -12,7 +12,6 @@ import (
 )
 
 func StartApp() {
-	fmt.Println("Test before logger initialization")
 	logger.InitLogs()
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")

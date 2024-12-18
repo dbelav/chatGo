@@ -4,7 +4,6 @@ import (
 	userHandlers "chat/internal/services/users"
 	"chat/internal/transport/websocket"
 	"database/sql"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -15,8 +14,8 @@ func Api(database *sql.DB) {
 	routes.GET("/ws", func(c *gin.Context) {
 		userId := c.Query("userId")
 		lobbyId := c.Query("lobbyId")
-
-		websocket.HandlerConnection(c.Writer, c.Request, userId, lobbyId)
+		useName := c.Query("userName")
+		websocket.HandlerConnection(c.Writer, c.Request, userId, lobbyId, useName)
 	})
 
 	lobbyGroup := routes.Group("/lobby")
@@ -30,7 +29,7 @@ func Api(database *sql.DB) {
 		})
 
 		lobbyGroup.GET("/history", func(c *gin.Context) {
-			c.JSON(http.StatusOK, gin.H{"message": "Комната создана"})
+			GetMessagesHistoryByRoomHandler(c, database)
 		})
 	}
 

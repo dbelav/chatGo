@@ -17,16 +17,16 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func HandlerConnection(w http.ResponseWriter, r *http.Request, userId, lobbyId string) {
+func HandlerConnection(w http.ResponseWriter, r *http.Request, userId, lobbyId, userName string) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Could not upgrade connection", http.StatusBadRequest)
 		return
 	}
-	// defer conn.Close()
 
 	user := &lobbyModels.User{
 		Id:         userId,
+		Username:   userName,
 		Connection: conn,
 		CloseChan:  make(chan struct{}),
 	}
@@ -35,6 +35,9 @@ func HandlerConnection(w http.ResponseWriter, r *http.Request, userId, lobbyId s
 }
 
 func HandlerSendMessageBrodcast(user *lobbyModels.User, message lobbyModels.Message) error {
+	if user.Id == message.From || user.Username == message.From { // so that the message doesn't go to yourself
+		return nil
+	}
 	err := user.Connection.WriteJSON(message)
 	if err != nil {
 		logger.Log.Error("Error sending message to user %s: %v", user.Id, err)
@@ -53,12 +56,12 @@ func ListenUserMessage(user *lobbyModels.User, room *lobbyHandlers.Room, db *sql
 		default: // default handler message
 			var message lobbyModels.Message
 			err := user.Connection.ReadJSON(&message)
-			lobbyHandlers.SaveMassageInHistory(message, user.Id, room.Id, db)
 			if err != nil {
 				logger.Log.Error("Error reading message from user %s: %v", user.Id, err)
 				return
 			}
-			room.Brodcast <- message 
+			lobbyHandlers.SaveMassageInHistory(message, user.Id, room.Id, db)
+			room.Brodcast <- message
 		}
 	}
 }
@@ -96,6 +99,5 @@ func ListenBrodcast(room *lobbyHandlers.Room) {
 			}
 			return true
 		})
-		fmt.Println("message sent")
 	}
 }
