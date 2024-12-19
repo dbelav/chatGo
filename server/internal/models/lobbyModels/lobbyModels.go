@@ -26,7 +26,7 @@ type CreateLobbyResponse struct {
 	Message string `json:"message"`
 }
 
-type ErrorCreateLobbyResponse struct {
+type ErrorResponce struct {
 	Message string `json:"message"`
 }
 
@@ -37,4 +37,8 @@ type JoinLobbyRequest struct {
 
 type JoinLobbyResponce struct {
 	Message string `json:"message"`
+}
+
+type HistoryRoomResponce struct {
+	MessagesHistory []Message `json:"messagesHistory"`
 }

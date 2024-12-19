@@ -43,9 +43,10 @@ func JoinLobbyHandler(c *gin.Context, database *sql.DB) {
 func CreateRoomHandler(c *gin.Context, database *sql.DB) {
 	room, err := lobbyHandlers.CreateLobby(c, database)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, lobbyModels.ErrorCreateLobbyResponse{
+		c.JSON(http.StatusInternalServerError, lobbyModels.ErrorResponce{
 			Message: "Error create lobby",
 		})
+		return
 	}
 
 	go transport.RunRoom(room, database)
@@ -57,5 +58,16 @@ func CreateRoomHandler(c *gin.Context, database *sql.DB) {
 }
 
 func GetMessagesHistoryByRoomHandler(c *gin.Context, database *sql.DB) {
+	result, err := lobbyHandlers.GetRoomHistory(c, database)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, lobbyModels.ErrorResponce{
+			Message: "Error get history",
+		})
+		return
+	}
+
+	c.JSON(http.StatusCreated, lobbyModels.HistoryRoomResponce{
+		MessagesHistory: result,
+	})
 
 }

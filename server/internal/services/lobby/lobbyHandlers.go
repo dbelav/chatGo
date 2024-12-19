@@ -4,6 +4,7 @@ import (
 	"chat/internal/database"
 	errormodels "chat/internal/models/errorModels"
 	"database/sql"
+	"errors"
 
 	"chat/internal/models/lobbyModels"
 
@@ -94,12 +95,18 @@ func JoinLobby(c *gin.Context, db *sql.DB) error {
 	return nil
 }
 
-func GetRoomHistory(c *gin.Context, db *sql.DB) error {
-	var request string
-
-	if err := c.ShouldBindJSON(&request); err != nil {
-		return err
+func GetRoomHistory(c *gin.Context, db *sql.DB) ([]lobbyModels.Message, error) {
+	requestRoomId := c.Query("roomId")
+	if requestRoomId == "" {
+		return nil, errors.New("room id required")
 	}
+
+	history, err := database.GetHistoryRoomFromDB(requestRoomId, db)
+	if err != nil {
+		return nil, err
+	}
+
+	return history, nil
 }
 
 func SaveMassageInHistory(message lobbyModels.Message, userId string, roomId string, db *sql.DB) {

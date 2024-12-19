@@ -97,7 +97,35 @@ func GetAllRoomFromDB(database *sql.DB) ([]string, error) {
 	return roomsId, nil
 }
 
-func AddMessageInDataBase(message lobbyModels.Message, userId, roomId string, db *sql.DB) {
+func AddMessageInDataBase(message lobbyModels.Message, userId, roomId string, database *sql.DB) {
 	query := `INSERT INTO messages (room_id, user_id, message) VALUES($1, $2, $3)`
-	db.Exec(query, roomId, userId, message.Content)
+	database.Exec(query, roomId, userId, message.Content)
+}
+
+func GetHistoryRoomFromDB(roomID string, database *sql.DB) ([]lobbyModels.Message, error) {
+	var historyMassage []lobbyModels.Message
+	query := `SELECT message, user_id FROM messages WHERE room_id = $1`
+	result, err := database.Query(query, roomID)
+	if err != nil {
+		logger.Log.Error("Error get history room")
+		return nil, err
+	}
+	defer result.Close()
+
+	for result.Next() {
+		var message lobbyModels.Message
+
+		err := result.Scan(&message.Content, &message.From)
+		if err != nil {
+			return nil, err
+		}
+		historyMassage = append(historyMassage, message)
+	}
+
+	if err := result.Err(); err != nil {
+		logger.Log.Error("Error during result iteration")
+		return nil, err
+	}
+
+	return historyMassage, nil
 }
