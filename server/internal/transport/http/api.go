@@ -15,7 +15,7 @@ func Api(database *sql.DB) {
 		userId := c.Query("userId")
 		lobbyId := c.Query("lobbyId")
 		useName := c.Query("userName")
-		websocket.HandlerConnection(c.Writer, c.Request, userId, lobbyId, useName)
+		websocket.HandlerConnection(c.Writer, c.Request, userId, lobbyId, useName, database)
 	})
 
 	lobbyGroup := routes.Group("/lobby")

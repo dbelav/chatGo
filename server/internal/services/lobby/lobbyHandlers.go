@@ -67,9 +67,13 @@ func (r *Room) DeleteUser(user *lobbyModels.User) {
 }
 
 func CreateLobby(c *gin.Context, db *sql.DB) (*Room, error) {
+	requestRoomId := c.Query("userId")
+	if requestRoomId == "" {
+		return nil, errors.New("room id required")
+	}
 	idLobby := uuid.New()
 
-	err := database.CreateLobbyInDatabase(idLobby.String(), db)
+	err := database.CreateLobbyInDatabase(idLobby.String(), requestRoomId, db)
 	if err != nil {
 		return nil, err
 	}
@@ -97,11 +101,12 @@ func JoinLobby(c *gin.Context, db *sql.DB) error {
 
 func GetRoomHistory(c *gin.Context, db *sql.DB) ([]lobbyModels.Message, error) {
 	requestRoomId := c.Query("roomId")
-	if requestRoomId == "" {
-		return nil, errors.New("room id required")
+	requestUserId := c.Query("userId")
+	if requestRoomId == "" || requestUserId == "" {
+		return nil, errormodels.RequiredQueryParams
 	}
 
-	history, err := database.GetHistoryRoomFromDB(requestRoomId, db)
+	history, err := database.GetHistoryRoomFromDB(requestRoomId, requestUserId, db)
 	if err != nil {
 		return nil, err
 	}
@@ -125,4 +130,9 @@ func InitAllRooms(db *sql.DB) error {
 		}
 	}
 	return nil
+}
+
+func CheckDataForConnection(userId, roomId string, db *sql.DB) bool {
+	ok := database.CheckDataForConnectionWebsocketDB(userId, roomId, db)
+	return ok
 }

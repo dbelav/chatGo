@@ -1,13 +1,12 @@
 package database
 
 import (
-	"database/sql"
-	"os"
-
-	// "chat/internal/database"
 	errormodels "chat/internal/models/errorModels"
 	"chat/internal/models/lobbyModels"
 	logger "chat/pkg"
+	"database/sql"
+	"fmt"
+	"os"
 
 	"github.com/lib/pq"
 )
@@ -22,13 +21,26 @@ func ConnectDatabase(dsn string) *sql.DB {
 	return db
 }
 
-func CreateLobbyInDatabase(id string, database *sql.DB) error {
-	query := "INSERT INTO rooms(id) VALUES($1)"
-	_, err := database.Exec(query, id)
+func CreateLobbyInDatabase(roomId, userID string, database *sql.DB) error {
+	// query := "INSERT INTO rooms(id) VALUES($1)"
+	query := `
+		INSERT INTO rooms (id)
+		SELECT $1
+		FROM users
+		WHERE users.id = $2`
+
+	result, err := database.Exec(query, roomId, userID)
 	if err != nil {
+		fmt.Println(err)
 		logger.Log.Error("Error create lobby in database")
 		return err
 	}
+	affectedRows, err := result.RowsAffected()
+	if err != nil || affectedRows == 0 {
+		logger.Log.Error("No access to create new lobby")
+		return errormodels.NoAccessCreateLobby
+	}
+
 	return nil
 }
 
@@ -102,10 +114,11 @@ func AddMessageInDataBase(message lobbyModels.Message, userId, roomId string, da
 	database.Exec(query, roomId, userId, message.Content)
 }
 
-func GetHistoryRoomFromDB(roomID string, database *sql.DB) ([]lobbyModels.Message, error) {
+func GetHistoryRoomFromDB(roomID, userId string, database *sql.DB) ([]lobbyModels.Message, error) {
 	var historyMassage []lobbyModels.Message
-	query := `SELECT message, user_id FROM messages WHERE room_id = $1`
-	result, err := database.Query(query, roomID)
+	query := `SELECT message, user_id FROM messages
+	 WHERE room_id = $1 AND EXISTS (SELECT 1 FROM users WHERE id = $2)`
+	result, err := database.Query(query, roomID, userId)
 	if err != nil {
 		logger.Log.Error("Error get history room")
 		return nil, err
@@ -128,4 +141,24 @@ func GetHistoryRoomFromDB(roomID string, database *sql.DB) ([]lobbyModels.Messag
 	}
 
 	return historyMassage, nil
+}
+
+func CheckDataForConnectionWebsocketDB(userId, roomId string, database *sql.DB) bool { // if true - OK, false - not OK
+	var userExists, roomExists bool
+
+	query := `SELECT EXISTS(SELECT 1 FROM users WHERE id = $1) AS user_exists, 
+					 EXISTS(SELECT 1 FROM rooms WHERE id = $2) AS room_exists`
+
+	row := database.QueryRow(query, userId, roomId)
+
+	err := row.Scan(&userExists, &roomExists)
+	if err != nil {
+		return false
+	}
+
+	if !userExists || !roomExists {
+		return false
+	}
+
+	return true
 }

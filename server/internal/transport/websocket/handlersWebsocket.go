@@ -17,7 +17,12 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func HandlerConnection(w http.ResponseWriter, r *http.Request, userId, lobbyId, userName string) {
+func HandlerConnection(w http.ResponseWriter, r *http.Request, userId, lobbyId, userName string, db *sql.DB) {
+	ok := lobbyHandlers.CheckDataForConnection(userId, lobbyId, db) // check for is exist user and room for connecting
+	if !ok {
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		http.Error(w, "Could not upgrade connection", http.StatusBadRequest)
